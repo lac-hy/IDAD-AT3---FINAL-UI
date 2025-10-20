@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Melbourne As A Soundscape</title>
+
+  <link rel="icon" type="image/png" href="image/slik.png" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- DM Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700;800&display=swap" rel="stylesheet" />
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Map (only once) -->
+  <div id="map"></div>  
+
+  <!-- Giant background title -->
+  <div id="bigTitle" class="title-giant">MELBOURNE CITY</div>
+
+  <!-- HUD stack: player (top) + weather (bottom) -->
+  <div id="hud" class="hud-stack">
+    <div id="clock-widget" class="clock">
+  <div class="clock-ampm" id="ampm">PM</div>
+  <div class="clock-block" id="hours">12</div>
+  <div class="clock-block" id="minutes">34</div>
+</div>
+    <div id="sun-slices" class="viz-slices">
+  <canvas id="sunCanvas"></canvas>
+</div>
+    <!-- Now Playing (replaces the old music player) -->
+<div id="nowplaying-widget" class="np">
+  <div class="np-header">
+    <div class="np-left">
+      <span class="np-dot" aria-hidden="true"></span>
+      <span class="np-title">Now Playing</span>
+    </div>
+    <button id="npClear" class="np-clear" aria-label="Stop all">Stop all</button>
+  </div>
+
+  <ul id="npList" class="np-list" aria-live="polite">
+    <!-- items injected by app.js -->
+  </ul>
+</div>
+
+
+    <!-- Weather Widget -->
+    <div id="weather-widget" class="wx">
+      <div class="wx-now">
+        <div class="wx-now-row">
+          <span class="wx-icon" aria-hidden="true">☀️</span>
+          <span id="wx-condition">Clear sky</span>
+        </div>
+        <div class="wx-temp-row">
+          <span id="wx-temp" class="wx-temp">24</span><span class="wx-deg">°</span>
+        </div>
+        <div id="wx-city" class="wx-city">Melbourne</div>
+      </div>
+
+      <div class="wx-forecast">
+        <!-- rows injected by app.js -->
+      </div>
+    </div>
+
+  </div><!-- /hud-stack -->
+
+  <!-- Glassmorphism Modal -->
+  <div id="overlay" class="overlay" aria-hidden="true"></div>
+  <article id="glass" class="glass-card" role="dialog" aria-modal="true" aria-labelledby="placeName">
+    <video id="glassVideo" class="glass-video" autoplay muted loop playsinline></video>
+
+    <div class="glass-top">
+      <div id="groupPill" class="group-pill">
+        <span class="dot"></span><span id="groupName">Category</span>
+      </div>
+      <button class="close-btn" id="closeBtn" aria-label="Close">×</button>
+    </div>
+
+    <div class="glass-bottom">
+      <h2 id="placeName" class="place-name">Place</h2>
+      <p class="meta">Signature sound: <b id="sigSound">—</b></p>
+    </div>
+  </article>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- App logic -->
+  <script src="function.js"></script>
+</body>
+</html>

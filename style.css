@@ -1,0 +1,520 @@
+/* ============== Root tokens ============== */
+:root{
+  --paper:#efefec;
+  --ink:#353535;
+  --accent:#ffd84d;
+
+  --glass-bg: rgba(255,255,255,.14);
+  --glass-border: rgba(255,255,255,.35);
+
+  /* category colours */
+  --central:#444;
+  --coastal:#2a7de1;
+  --greater:#3c9c5a;
+  --landmark:#ff991c; 
+}
+
+/* ============== Layout ============== */
+html, body{
+  height:100%;
+  margin:0;
+  font-family:'DM Sans', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+}
+
+/* Map sits at the bottom of the stacking order */
+#map{
+  width:100%;
+  height:100vh;
+  position:relative;
+  z-index:0;           
+}
+
+/* Subtle paper/grain on top of tiles */
+#map::after{
+  content:"";
+  position:absolute; inset:0; pointer-events:none;
+  opacity:.20; mix-blend-mode:multiply;
+  background:
+    radial-gradient(120px 120px at 15% 20%, #0000 60%, #0002 61% 62%, #0000 63%) 0 0/300px 300px,
+    radial-gradient(150px 150px at 75% 70%, #0000 60%, #0002 61% 62%, #0000 63%) 0 0/320px 320px;
+  filter:contrast(120%) brightness(105%);
+}
+
+/* Hide Leaflet UI (zoom/attribution/layers) */
+.leaflet-control-container{ display:none !important; }
+
+/* ============== Heading (top-left) ============== */
+.title-giant {
+  position: absolute;
+  top: -2vw;
+  left: 0;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 800;
+  font-size: 12vw;
+  line-height: 1;
+  color: rgba(0,0,0,0.2);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+  z-index: 2000;
+  pointer-events: none;
+  user-select: none;
+  transform: translateX(-0.8vw);
+}
+
+/* ============== Map dots & guide ============== */
+.glow-dot{
+  width:16px; height:16px; border-radius:50%;
+  background:rgba(255,216,77,0.95);
+  box-shadow:
+    0 0 8px rgba(255,216,77,.9),
+    0 0 18px rgba(255,216,77,.8),
+    0 0 28px rgba(255,216,77,.7);
+}
+.guide-line{
+  stroke-dasharray:6 8 !important;
+  stroke:#ffffff !important;
+  stroke-opacity:.8 !important;
+  stroke-width:2px !important;
+}
+
+/* ============== Glass Modal (center) ============== */
+.overlay{
+  position:fixed; inset:0; z-index:900;
+  background:rgba(0,0,0,.25);
+  opacity:0; pointer-events:none; transition:opacity .25s ease;
+}
+.overlay.show{ opacity:1; pointer-events:auto; }
+
+.glass-card{
+  position:fixed; z-index:901;
+  width:min(560px, 92vw);
+  aspect-ratio:16/10;
+  border-radius:18px;
+  overflow:hidden;
+  inset:50% auto auto 50%;
+  transform:translate(-50%,-50%) scale(.98);
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  backdrop-filter:blur(14px) saturate(115%);
+  -webkit-backdrop-filter:blur(14px) saturate(115%);
+  box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.35);
+  opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease;
+}
+.glass-card.show{ opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+
+.glass-video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(110%) contrast(102%); }
+
+.glass-top{
+  position:absolute; top:10px; left:12px; right:12px;
+  display:flex; align-items:center; gap:10px; color:#fff;
+  text-shadow:0 1px 1px rgba(0,0,0,.35);
+}
+.group-pill{
+  display:flex; align-items:center; gap:8px;
+  font-weight:500; font-size:13px;
+  padding:6px 10px; border-radius:999px; color:#fff;
+}
+.group-pill .dot{ width:9px; height:9px; border-radius:50%; background:#fff; }
+
+/* category colour classes */
+.group-central{ background:var(--central); }
+.group-coastal{ background:var(--coastal); }
+.group-greater{ background:var(--greater); }
+.group-landmark{ background:var(--landmark); }
+
+.close-btn{
+  margin-left:auto; display:grid; place-items:center;
+  width:32px; height:32px; border-radius:10px;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff; font-weight:700; cursor:pointer;
+  transition:transform .12s ease, background .2s ease;
+}
+.close-btn:hover{ transform:scale(1.05); background:rgba(0,0,0,.45); }
+
+.glass-bottom{
+  position:absolute; left:14px; right:14px; bottom:12px; color:#fff;
+  text-shadow:0 2px 4px rgba(0,0,0,.4);
+}
+.place-name{ font-weight:700; font-size:28px; line-height:1.1; margin:0 0 4px; }
+.meta{ font-weight:500; font-size:14px; opacity:.9; margin:0; }
+.meta b{ font-weight:700; }
+
+@media (prefers-reduced-motion: reduce){
+  .glass-card, .overlay{ transition:none; }
+}
+
+#time-widget {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 12000; 
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+/* ========== Compact Weather Widget ========== */
+.wx {
+  position: fixed;
+  bottom: 15px;
+  left: 15px;
+  z-index: 12000;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #0f0f10;
+  color: #fff;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  line-height: 1.3;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25);
+  border: 1px solid rgba(255,255,255,.05);
+  max-width: 320px;
+}
+
+.wx-now {
+  background: #ffd400;
+  color: #0a0a0a;
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 140px;
+  text-align: left;
+}
+
+.wx-now-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.wx-icon { font-size: 14px; }
+.wx-temp-row { margin-top: 6px; line-height: 1; }
+.wx-temp { font-size: 28px; font-weight: 700; }
+.wx-deg { font-size: 18px; font-weight: 700; margin-left: 1px; }
+.wx-city { margin-top: 4px; font-weight: 600; font-size: 11px; }
+
+.wx-forecast {
+  background: #141416;
+  border-radius: 10px;
+  padding: 6px 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.wx-row {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.wx-row .day { font-weight: 600; }
+.wx-row .mini-icon { font-size: 13px; }
+.wx-row .min { opacity: .7; }
+.wx-row .max { font-weight: 600; }
+
+:root{
+  --widget-width: 320px;   /* both widgets use this */
+  --stack-gap: 10px;       /* space between stacked widgets */
+}
+
+/* positions (player above weather) */
+#weather-widget { position: fixed; left: 15px; bottom: 15px; z-index: 12000; }
+#music-widget   { position: fixed; left: 15px; z-index: 12000;
+  bottom: calc(15px + var(--widget-height, 0px) + var(--stack-gap)); }
+
+/* same width */
+.wx, .player { width: var(--widget-width); }
+
+/* ===== Player Card ===== */
+.player{
+  display:grid; gap:10px;
+  padding:12px;
+  border-radius:22px;
+  color:#fff;
+  background: radial-gradient(160% 160% at 15% 10%, #232427 0%, #151619 60%, #101114 100%);
+  box-shadow: 0 14px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.06);
+  font-family:'DM Sans',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  font-size:12px;
+}
+
+.pl-top{ display:flex; align-items:center; justify-content:space-between; }
+.pl-chip{
+  display:flex; align-items:center; gap:8px;
+  padding:6px 10px; border-radius:999px;
+  background:rgba(255,255,255,.06);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.pl-avatar{ width:22px; height:22px; border-radius:50%; object-fit:cover; }
+.pl-name{ font-weight:700; line-height:1; }
+.pl-handle{ opacity:.75; font-size:11px; line-height:1; }
+
+.icon-btn{
+  width:34px; height:34px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05); color:#fff; cursor:pointer;
+}
+.icon-btn:hover{ background:rgba(255,255,255,.1); }
+
+.pl-artwrap{
+  border-radius:16px; overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+}
+.pl-art{ display:block; width:100%; height:180px; object-fit:cover; }
+
+.pl-timeline{ display:grid; grid-template-columns:auto 1fr auto; gap:8px; align-items:center; }
+#plProgress{
+  -webkit-appearance:none; appearance:none; height:4px; border-radius:2px;
+  background:#4a4d54; outline:none;
+}
+#plProgress::-webkit-slider-thumb{
+  -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:#fff; cursor:pointer;
+}
+#plProgress::-moz-range-thumb{
+  width:12px; height:12px; border-radius:50%; background:#fff; border:0; cursor:pointer;
+}
+
+.pl-controls{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px; }
+.round{
+  height:40px; border-radius:12px; border:1px solid rgba(255,255,255,.1);
+  background:#1a1b1e; color:#fff; cursor:pointer; font-size:16px;
+  box-shadow:0 4px 10px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.round:hover{ background:#202226; }
+.round.primary{
+  width:56px; height:56px; border-radius:18px; margin:0 auto; font-size:20px; border:none;
+  background: radial-gradient(120% 120% at 50% 30%, #ffffff 0%, #f3f3f3 60%, #d8d8d8 100%);
+  color:#111;
+}
+.round.primary.is-playing{ background: radial-gradient(120% 120% at 50% 30%, #ff5b50 0%, #ff3b30 40%, #cf2a23 100%); color:#fff; }
+
+/* ----- stack: player above weather ----- */
+:root{
+  --stack-gap: 10px;              /* space between the two widgets */
+  --widget-width: 320px;          /* will be overwritten by JS */
+  --weather-height: 0px;          /* will be overwritten by JS */
+}
+
+/* Make widths identical (and include padding/borders) */
+#weather-widget, #music-widget { width: var(--widget-width); box-sizing: border-box; }
+
+/* Ensure the player never auto-expands beyond its box */
+.player { width: 100%; max-width: 100%; overflow: hidden; }
+
+/* Art should conform to the card width */
+.player .pl-artwrap { width: 100%; }
+.player .pl-art     { width: 100%; height: 180px; object-fit: cove }
+
+:root{
+  --widget-width: 360px;   /* change once; both follow */
+  --stack-gap: 12px;       /* space between widgets */
+}
+
+/* One fixed anchor for BOTH widgets */
+.hud-stack{
+  position: fixed;
+  left: 15px;
+  bottom: 15px;
+  z-index: 12000;
+  display: flex;
+  flex-direction: column;  /* player above, weather below */
+  gap: var(--stack-gap);
+  width: var(--widget-width);
+}
+
+/* Make children obey container’s width */
+.hud-stack > *{
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Neutralize any old fixed-position rules */
+#music-widget, #weather-widget{
+  position: static !important;
+  left: auto !important;
+  bottom: auto !important;
+  right: auto !important;
+  top: auto !important;
+  max-width: 100%;
+}
+
+/* Shrink music player cover art */
+#music-widget .pl-art {
+  height: 100px;        /* try 120px, 140px, etc. */
+  object-fit: cover;    /* crops the image if needed */
+  border-radius: 12px;
+}
+/* Player control container */
+#music-widget .pl-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+/* Equal-sized rectangular buttons */
+#music-widget .pl-controls button {
+  flex: 1;                     /* all buttons share equal width */
+  height: 48px;                /* consistent height */
+  border-radius: 12px;         /* curved edges */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+/* Variants */
+#music-widget .pl-controls .primary {
+  background: #ff4757;
+  color: white;
+}
+
+#music-widget .pl-controls .ghost {
+  background: #2f3542;
+  color: white;
+}
+
+#music-widget .pl-controls button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+#music-widget .pl-chip {
+  padding: 6px 12px;
+  gap: 8px;
+  border-radius: 999px;
+}
+
+#music-widget .pl-name   { font-weight: 800; }
+#music-widget .pl-handle { opacity: 0.85; }
+
+/* Sliced Sun card */
+.viz-slices{
+  width: 100%;
+  height: 155px;                 /* tweak height if you want it taller/shorter */
+  border-radius: 18px;
+  padding: 8px;
+  box-sizing: border-box;
+  background: radial-gradient(140% 140% at 20% 10%, #1a1b1e 0%, #0f1012 60%, #0b0c0e 100%);
+  border: 1px solid rgba(255,255,255,.06);
+  box-shadow: 0 10px 24px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.06);
+  overflow: hidden;
+}
+
+#sunCanvas{
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 12px;
+  background: #0c0d0d;           /* deep base like your reference */
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+}
+
+.clock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-family: 'DM Sans', sans-serif;
+  color: #ddd;
+  gap: 10px;
+}
+
+.clock-ampm {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #bbb;
+  margin-right: 8px;
+}
+
+.clock-block {
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  color: #e0e0e0;
+  min-width: 90px;
+}
+
+/* ========== Now Playing widget ========== */
+.np{
+  width: var(--widget-width);
+  box-sizing: border-box;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 22px;
+  color: #fff;
+  background: radial-gradient(160% 160% at 15% 10%, #232427 0%, #151619 60%, #101114 100%);
+  box-shadow: 0 14px 34px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.06);
+  font-family: 'DM Sans', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-size: 12px;
+}
+
+.np-header{
+  display:flex; align-items:center; justify-content:space-between;
+}
+
+.np-left{ display:flex; align-items:center; gap:8px; }
+.np-dot{
+  width:10px; height:10px; border-radius:50%;
+  background: rgba(255,216,77,0.95);
+  box-shadow: 0 0 8px rgba(255,216,77,.9), 0 0 18px rgba(255,216,77,.8);
+}
+.np-title{ font-weight:800; letter-spacing:.2px; }
+
+.np-clear{
+  padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06); color:#fff; cursor:pointer;
+}
+.np-clear:hover{ background: rgba(255,255,255,.12); }
+
+.np-list{ list-style:none; padding:0; margin:0; display:grid; gap:6px; }
+
+.np-item{
+  display:grid; grid-template-columns: 1fr auto; align-items:center; gap:8px;
+  padding:8px 10px; border-radius:12px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.06);
+}
+.np-name{ font-weight:700; }
+.np-meta{ opacity:.8; font-size:11px; }
+
+.np-stop{
+  padding:6px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.1);
+  background:#2f3542; color:#fff; cursor:pointer;
+}
+.np-stop:hover{ background:#3a4150; }
+
