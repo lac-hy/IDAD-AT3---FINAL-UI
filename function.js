@@ -121,15 +121,18 @@ function openGlass(poi) {
   if (poi.category === "Greater Melbourne") groupPill.classList.add("group-greater");
   if (poi.category === "Landmarks")         groupPill.classList.add("group-landmark");
 
+  // keep video for compatibility; mixer sits after it in HTML
   videoEl.src = poi.video;
   videoEl.play().catch(() => {});
 
   overlay.classList.add("show");
-  glass.classList.add("show");
   overlay.setAttribute("aria-hidden", "false");
+  glass.classList.add("show");
+  glass.setAttribute("aria-hidden", "false");   // <= helps CSS show the mixer only when open
 }
 function closeGlass() {
   glass.classList.remove("show");
+  glass.setAttribute("aria-hidden", "true");
   overlay.classList.remove("show");
   overlay.setAttribute("aria-hidden", "true");
   videoEl.pause(); videoEl.currentTime = 0; videoEl.removeAttribute("src"); videoEl.load();
@@ -465,11 +468,23 @@ const AudioEngine = (() => {
   const Ctx = window.AudioContext || window.webkitAudioContext;
   const ctx = new Ctx();
 
+  // === Strong autoplay resume (fixes "no sound" on first load) ===
+  const resume = () => { if (ctx.state === "suspended") ctx.resume(); };
+  window.addEventListener("pointerdown", resume, { passive: true });
+  window.addEventListener("keydown", resume, { passive: true });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) resume(); });
+
   // Master with gentle compressor to avoid clipping
   const master = ctx.createGain(); master.gain.value = 0.7;
   const comp = ctx.createDynamicsCompressor();
   comp.threshold.value = -18; comp.knee.value = 24; comp.ratio.value = 3; comp.attack.value = 0.003; comp.release.value = 0.25;
+
+  // Safe, known-good chain to speakers
+  try { master.disconnect && master.disconnect(); } catch(e){}
   master.connect(comp).connect(ctx.destination);
+
+  // Expose a safe tap for mixer.js (no disconnects done in mixer)
+  window.__AUDIO_TAP__ = { ctx, master, comp };
 
   // Reverb bus (simple impulse)
   const reverb = ctx.createConvolver();
@@ -869,6 +884,16 @@ const AudioEngine = (() => {
     if (e.voice && e.voice.setLevel) e.voice.setLevel(e.params.level);
     if (e.drums && e.drums.setLevel) e.drums.setLevel(e.params.level);
   }
+
+  // helper to test audio quickly in the console
+  window.DEBUG_TEST_TONE = () => {
+    resume();
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = "sine"; o.frequency.value = 440; g.gain.value = 0.05;
+    o.connect(g).connect(master); o.start();
+    setTimeout(() => { try{o.stop();}catch(e){}; try{o.disconnect(); g.disconnect();}catch(e){}; }, 700);
+    return "Beep for ~0.7s";
+  };
 
   return { toggleForPoint, stopAll, on, stop: stopLoop, setNoise, setLevel };
 })();

@@ -518,3 +518,137 @@ html, body{
 }
 .np-stop:hover{ background:#3a4150; }
 
+/* ===== Mixer panel (Partially ChatGPT) ===== */
+.mx{
+  display:grid; grid-template-columns: 320px 1fr 260px;
+  background:#f5f5f3; border:1px solid #e8e8e4; border-radius:14px;
+  color:#1b1b1b; box-shadow:0 8px 28px rgba(0,0,0,.12);
+  user-select:none;
+}
+.mx-left{ display:grid; grid-template-rows:auto 1fr; padding:18px; }
+.mx-brand .mx-mini{ font-size:11px; letter-spacing:.6px; opacity:.7 }
+.mx-brand .mx-title{ font-weight:800; letter-spacing:.3px; margin-top:2px }
+.mx-brand .mx-by{ font-size:11px; opacity:.6; margin-top:2px }
+.mx-macros{ margin-top:10px }
+.mx-label{ font-size:12px; opacity:.7 }
+.mx-macros-row{ display:flex; gap:16px; margin-top:8px }
+.knob-wrap{ display:grid; place-items:center; gap:6px }
+.knob-tag{ font-size:11px; opacity:.8 }
+
+.mx-center{ display:grid; grid-template-rows:auto auto auto; align-items:center; padding:18px 10px }
+.knob-group{ display:flex; align-items:end; justify-content:space-evenly; gap:16px }
+.knob{ -webkit-appearance:none; appearance:none; width:76px; height:76px; border-radius:50%;
+  background: radial-gradient(closest-side,#1b1b1b 80%,#1b1b1b 0) padding-box,
+              conic-gradient(#1b1b1b calc(var(--val,50)*1%), #d7d7d3 0) border-box;
+  border:10px solid transparent; transform:rotate(-135deg); cursor:pointer; }
+.knob::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:0; height:0 }
+.knob-lg{ width:94px; height:94px; border-width:12px }
+.knob-col{ display:grid; place-items:center }
+.knob-label{ text-align:center; font-size:12px; margin-top:6px; opacity:.85 }
+
+.mx-io{ text-align:center; font-size:12px; opacity:.7; margin-top:10px }
+.mx-arrow{ color:#60d394; font-weight:700; margin:0 6px }
+.mx-spacer{ display:inline-block; width:24px }
+
+.mx-preset{ display:flex; justify-content:center; align-items:center; gap:10px; margin-top:10px; font-size:12px }
+#mxPreset{ padding:6px 10px; border-radius:8px; border:1px solid #ddd; background:#fff }
+.mx-save{ padding:6px 10px; border-radius:10px; border:1px solid #ddd; background:#fff; cursor:pointer }
+.mx-save:hover{ background:#f0f0ef }
+
+.mx-right{ position:relative; overflow:hidden; border-left:1px solid #e8e8e4 }
+#mxArt{ width:100%; height:100%; display:block }
+
+/* Variant: mixer embedded in the glass popup (full width) */
+.in-glass{ width:100%; height:280px; }
+.glass-card .in-glass{ margin:16px; }
+
+/* responsive */
+@media (max-width: 920px){
+  .in-glass{ grid-template-columns:1fr; grid-template-rows:auto auto 140px; height:auto }
+  .mx-right{ height:140px; order:-1 }
+}
+
+/* ===== MIXER INSIDE POPUP ===== */
+/* Hide mixer unless the card is open */
+.glass-card .mx.in-glass{ display: none; }
+.glass-card.show .mx.in-glass{ display: grid; }
+
+/* Layout like the reference: left / center / right */
+.glass-card .mx.in-glass{
+  position: static !important;
+  transform: none !important;
+  z-index: auto !important;
+
+  margin: 16px;
+  background: #f5f5f3;
+  border: 1px solid #e8e8e4;
+  border-radius: 12px;
+  box-shadow: none;
+
+  grid-template-columns: 260px 1fr 240px;
+  grid-template-rows: auto auto auto;
+  gap: 0;
+  height: 240px;
+}
+
+/* Left: brand + four small knobs + sample rate */
+.glass-card .mx.in-glass .mx-left{
+  padding: 14px 16px 12px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+.glass-card .mx.in-glass .mx-brand .mx-mini{ font-size:10px; opacity:.65; letter-spacing:.4px; }
+.glass-card .mx.in-glass .mx-brand .mx-title{ font-size:18px; line-height:1.1; margin-top:2px; }
+.glass-card .mx.in-glass .mx-brand .mx-by{ font-size:10px; opacity:.65; }
+.glass-card .mx.in-glass .mx-label{ font-size:12px; opacity:.75; margin-top:10px; }
+.glass-card .mx.in-glass .mx-macros-row{ display:flex; gap:12px; margin-top:8px; }
+.glass-card .mx.in-glass .knob{ width:46px; height:46px; border-width:8px; }
+.glass-card .mx.in-glass .knob-wrap{ gap:4px; }
+.glass-card .mx.in-glass .knob-tag{ font-size:11px; opacity:.8; }
+.glass-card .mx.in-glass .mx-samplerate{ font-size:12px; font-weight:600; margin-top:12px; }
+
+/* Center: three large knobs + labels + arrows + preset row */
+.glass-card .mx.in-glass .mx-center{
+  padding: 16px 12px 12px;
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+}
+.glass-card .mx.in-glass .knob-group{
+  display:grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items:end;
+  justify-items:center;
+}
+.glass-card .mx.in-glass .knob-lg{ width:84px; height:84px; border-width:10px; }
+.glass-card .mx.in-glass .knob-label{ font-size:12px; margin-top:6px; opacity:.85; }
+
+.glass-card .mx.in-glass .mx-io{ text-align:center; font-size:12px; opacity:.7; margin-top:8px; }
+.glass-card .mx.in-glass .mx-arrow{ color:#60d394; font-weight:700; margin:0 6px; }
+.glass-card .mx.in-glass .mx-spacer{ display:inline-block; width: 32px; }
+
+.glass-card .mx.in-glass .mx-preset{
+  display:flex; justify-content:center; align-items:center; gap:12px;
+  margin-top: 10px; font-size:12px;
+}
+.glass-card .mx.in-glass #mxPreset{ padding:6px 10px; border-radius:8px; border:1px solid #ddd; background:#fff; }
+.glass-card .mx.in-glass .mx-save{ padding:6px 10px; border-radius:10px; border:1px solid #ddd; background:#fff; }
+
+/* Right: gradient art column */
+.glass-card .mx.in-glass .mx-right{ border-left: 1px solid #e8e8e4; overflow: hidden; }
+.glass-card .mx.in-glass #mxArt{ width:100%; height:100%; display:block; }
+
+/* keep card header clear of panel */
+.glass-card .mx.in-glass{ margin-top: 28px; }
+
+/* Responsive: stack cleanly */
+@media (max-width: 920px){
+  .glass-card .mx.in-glass{
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 140px;
+    height: auto;
+  }
+  .glass-card .mx.in-glass .mx-right{ height:140px; order:-1; }
+  .glass-card .mx.in-glass .knob-lg{ width:76px; height:76px; }
+}
