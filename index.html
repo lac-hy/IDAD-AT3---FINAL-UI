@@ -17,10 +17,11 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Map container -->
-  <div id="map"></div>
 
-  <!-- Big title -->
+  <!-- Map (only once) -->
+  <div id="map"></div>  
+
+  <!-- Giant background title -->
   <div id="bigTitle" class="title-giant">MELBOURNE CITY</div>
 
   <!-- HUD stack: player (top) + weather (bottom) -->
@@ -35,11 +36,17 @@
 </div>
     <!-- Now Playing (replaces the old music player) -->
 <div id="nowplaying-widget" class="np">
-  <div class="np-head">
-    <div class="np-title">Now Playing</div>
-    <button id="npClear" class="btn-ghost sm">Stop all</button>
+  <div class="np-header">
+    <div class="np-left">
+      <span class="np-dot" aria-hidden="true"></span>
+      <span class="np-title">Now Playing</span>
+    </div>
+    <button id="npClear" class="np-clear" aria-label="Stop all">Stop all</button>
   </div>
-  <div id="npList" class="np-list"></div>
+
+  <ul id="npList" class="np-list" aria-live="polite">
+    <!-- items injected by app.js -->
+  </ul>
 </div>
 
 
@@ -55,64 +62,61 @@
         </div>
         <div id="wx-city" class="wx-city">Melbourne</div>
       </div>
+
       <div class="wx-forecast">
-        <div class="wx-col">
-          <div class="wx-day">Wed</div>
-          <div class="wx-minmax"><span>11</span> <span>21</span></div>
-        </div>
-        <div class="wx-col">
-          <div class="wx-day">Thu</div>
-          <div class="wx-minmax"><span>9</span> <span>18</span></div>
-        </div>
+        <!-- rows injected by app.js -->
       </div>
+    </div>
+
+  </div><!-- /hud-stack -->
+
+  <!-- Glassmorphism Modal -->
+  <div id="overlay" class="overlay" aria-hidden="true"></div>
+  <article id="glass" class="glass-card" role="dialog" aria-modal="true" aria-labelledby="placeName">
+    <video id="glassVideo" class="glass-video" autoplay muted loop playsinline></video>
+    <!-- Mixer embedded where the video was -->
+<!-- Compact Mixer (fits card) -->
+<div id="mixerMini" class="mixer-mini" hidden>
+  <div class="mx-title">ai model</div>
+
+  <div class="mx-grid">
+    <!-- row 1: A–D -->
+    <div class="mx-cell">
+      <label>A</label>
+      <input id="mxA" type="range" min="0" max="100" value="60">
+    </div>
+    <div class="mx-cell">
+      <label>B</label>
+      <input id="mxB" type="range" min="0" max="100" value="55">
+    </div>
+    <div class="mx-cell">
+      <label>C</label>
+      <input id="mxC" type="range" min="0" max="100" value="35">
+    </div>
+    <div class="mx-cell">
+      <label>D</label>
+      <input id="mxD" type="range" min="0" max="100" value="25">
+    </div>
+
+    <!-- row 2: wet / dry / output -->
+    <div class="mx-cell wide">
+      <label>wet</label>
+      <input id="mxWet" type="range" min="0" max="100" value="65">
+    </div>
+    <div class="mx-cell wide">
+      <label>dry</label>
+      <input id="mxDry" type="range" min="0" max="100" value="80">
+    </div>
+    <div class="mx-cell wide">
+      <label>output gain</label>
+      <input id="mxGain" type="range" min="0" max="100" value="90">
     </div>
   </div>
 
-  <!-- Dim overlay for the popup -->
-  <div id="overlay" class="overlay" aria-hidden="true"></div>
-
-  <!-- Popup “glass” card -->
-  <article id="glass" class="glass-card" role="dialog" aria-modal="true" aria-labelledby="placeName">
-    <video id="glassVideo" class="glass-video" autoplay muted loop playsinline></video>
-
-    <!-- Mixer embedded in the glass card -->
-    <section id="mixer" class="mx in-glass" aria-label="Mixer">
-      <div class="mx-left">
-        <div class="mx-brand">
-          <div class="mx-mini">neutone</div>
-          <div class="mx-title">ai model</div>
-          <div class="mx-by">by You</div>
-        </div>
-
-        <div class="mx-macros">
-          <span class="mx-label">custom settings</span>
-          <div class="mx-macros-row">
-            <div class="knob-wrap"><input type="range" class="knob" data-macro="A" min="0" max="100" value="25"><span class="knob-tag">A</span></div>
-            <div class="knob-wrap"><input type="range" class="knob" data-macro="B" min="0" max="100" value="30"><span class="knob-tag">B</span></div>
-            <div class="knob-wrap"><input type="range" class="knob" data-macro="C" min="0" max="100" value="40"><span class="knob-tag">C</span></div>
-            <div class="knob-wrap"><input type="range" class="knob" data-macro="D" min="0" max="100" value="10"><span class="knob-tag">D</span></div>
-          </div>
-          <div class="mx-samplerate">sample rate: <span id="mxSample">48000</span></div>
-        </div>
-      </div>
-
-      <div class="mx-center">
-        <div class="knob-group">
-          <div class="knob-col"><input id="mxWet"  type="range" class="knob knob-lg" min="0" max="100" value="50"><div class="knob-label">wet</div></div>
-          <div class="knob-col"><input id="mxDry"  type="range" class="knob knob-lg" min="0" max="100" value="50"><div class="knob-label">dry</div></div>
-          <div class="knob-col"><input id="mxGain" type="range" class="knob knob-lg" min="0" max="100" value="80"><div class="knob-label">output gain</div></div>
-        </div>
-
-        <div class="mx-io"><span class="mx-arrow">→</span> stereo in <span class="mx-spacer"></span> stereo out <span class="mx-arrow">→</span></div>
-
-        <div class="mx-preset">
-          <select id="mxPreset"><option>New Preset</option></select>
-          <button id="mxSave" class="mx-save">save preset</button>
-        </div>
-      </div>
-
-      <div class="mx-right"><canvas id="mxArt"></canvas></div>
-    </section>
+  <div class="mx-foot">
+    <span class="mx-sample">sample rate: <span id="mxSample">48000</span></span>
+  </div>
+</div>
 
     <div class="glass-top">
       <div id="groupPill" class="group-pill">
@@ -129,10 +133,6 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- Mixer module -->
-  <script src="mixer.js"></script>
-
   <!-- App logic -->
   <script src="function.js"></script>
 </body>

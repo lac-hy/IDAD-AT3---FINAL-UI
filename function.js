@@ -479,12 +479,17 @@ const AudioEngine = (() => {
   const comp = ctx.createDynamicsCompressor();
   comp.threshold.value = -18; comp.knee.value = 24; comp.ratio.value = 3; comp.attack.value = 0.003; comp.release.value = 0.25;
 
-  // Safe, known-good chain to speakers
-  try { master.disconnect && master.disconnect(); } catch(e){}
-  master.connect(comp).connect(ctx.destination);
+  // INSERT: post-compressor output gain so mixer can control the dry path
+  const mainOut = ctx.createGain();
+  mainOut.gain.value = 1;
 
-  // Expose a safe tap for mixer.js (no disconnects done in mixer)
-  window.__AUDIO_TAP__ = { ctx, master, comp };
+  // Safe chain to speakers (master -> comp -> mainOut -> destination)
+  try { master.disconnect && master.disconnect(); } catch(e){}
+  master.connect(comp).connect(mainOut).connect(ctx.destination);
+
+  // Expose a safe tap for mixer.js
+  window.__AUDIO_TAP__ = { ctx, master, comp, mainOut };
+
 
   // Reverb bus (simple impulse)
   const reverb = ctx.createConvolver();
@@ -967,4 +972,97 @@ const AudioEngine = (() => {
   });
 
   clearBtn.addEventListener('click', () => AudioEngine.stopAll());
+})();
+
+/* ===== Compact mixer wiring ===== */
+(() => {
+  const mixer = document.getElementById('mixerMini');
+  if (!mixer) return;
+
+  const A = document.getElementById('mxA');
+  const B = document.getElementById('mxB');
+  const C = document.getElementById('mxC');
+  const D = document.getElementById('mxD');
+  const Wet  = document.getElementById('mxWet');
+  const Dry  = document.getElementById('mxDry');
+  const Gain = document.getElementById('mxGain');
+  const SR   = document.getElementById('mxSample');
+
+  function attach() {
+    const tap = window.__AUDIO_TAP__;
+    if (!tap || !tap.ctx || !tap.master) return false;
+
+    const ctx = tap.ctx;
+    if (SR) SR.textContent = ctx.sampleRate;
+
+    // Use compressor output (post dynamics) as our tap point
+    const post = tap.comp || tap.master;
+
+    // --- Wet path (parallel FX) ---
+    const tee = ctx.createGain(); post.connect(tee);
+    const wetPre = ctx.createGain();      // amount into FX
+    const wetOut = ctx.createGain();      // FX output gain (also scaled by Output)
+    const lp  = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 16000;
+    const ws  = ctx.createWaveShaper();
+    const tbl = new Float32Array(65536);
+    for (let i=0;i<tbl.length;i++){ const x=(i/32768)-1; tbl[i]=Math.round(x*16)/16; }
+    ws.curve = tbl; ws.oversample = '4x';
+    const dly = ctx.createDelay(1.0); dly.delayTime.value = .14;
+    const fb  = ctx.createGain(); fb.gain.value = .18;
+
+    tee.connect(wetPre).connect(lp).connect(ws).connect(dly).connect(wetOut);
+    dly.connect(fb).connect(dly);
+    wetOut.connect(ctx.destination);
+
+    // --- Dry path control (post comp) ---
+    const dryOut = tap.mainOut || null;  // this node was added earlier; if missing, dry stays fixed
+
+    // helpers
+    const setWet  = v => { wetPre.gain.setTargetAtTime(v, ctx.currentTime, .01); };
+    const setDry  = v => { if (dryOut) dryOut.gain.setTargetAtTime(v, ctx.currentTime, .01); };
+    const setGain = v => { wetOut.gain.setTargetAtTime(v, ctx.currentTime, .01); if (dryOut) dryOut.gain.setTargetAtTime((Dry.value/100)*v, ctx.currentTime, .01); };
+
+    const applyMain = () => {
+      const w = (Wet?.value ?? 50) / 100;
+      const d = (Dry?.value ?? 50) / 100;
+      const g = Math.pow((Gain?.value ?? 90)/100, 1.2);
+      setWet(w); setDry(d); setGain(g);
+    };
+
+    const applyMacros = () => {
+      const a = (A?.value ?? 50) / 100;
+      const b = (B?.value ?? 50) / 100;
+      const c = (C?.value ?? 50) / 100;
+      const d = (D?.value ?? 50) / 100;
+
+      lp.frequency.setTargetAtTime(400 + a*18000, ctx.currentTime, .05);  // A: cutoff
+      dly.delayTime.setTargetAtTime(.02 + b*.45, ctx.currentTime, .05);   // B: delay time
+      fb.gain.setTargetAtTime(c*.6, ctx.currentTime, .05);                // C: feedback
+      ws.oversample = d > .7 ? 'none' : d > .35 ? '2x' : '4x';            // D: crush harshness
+    };
+
+    ['input','change'].forEach(ev => {
+      [Wet, Dry, Gain].forEach(n=>n && n.addEventListener(ev, applyMain));
+      [A,B,C,D].forEach(n=>n && n.addEventListener(ev, applyMacros));
+    });
+
+    applyMain(); applyMacros();
+    return true;
+  }
+
+  // Show/Hide with popup
+  const glass = document.getElementById('glass');
+  const show = () => { mixer.hidden = false; };
+  const hide = () => { mixer.hidden = true; };
+
+  if (glass) {
+    const mo = new MutationObserver(() => {
+      const open = glass.classList.contains('show') && glass.getAttribute('aria-hidden') !== 'true';
+      if (open) { show(); attach(); } else { hide(); }
+    });
+    mo.observe(glass, { attributes: true, attributeFilter: ['class','aria-hidden'] });
+  }
+
+  // In case the popup is already open on load
+  setTimeout(() => attach(), 80);
 })();
